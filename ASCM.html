@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="style/style.css">
+
+    <style type="text/css" media="print">
+        .noprint {
+            display: none
+        }
+        
+        .print {
+            display: block !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header class="el-header noprint">
+            <div class="icon-btns">
+                <i class="icon-list" @click="changeLeftMenu"></i>
+                <i class="icon-skip_previous" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('first')"></i>
+                <i class="icon-play_arrow prev-icon" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('prev')"></i>
+                <i class="icon-play_arrow" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('next')"></i>
+                <i class="icon-skip_next" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('last')"></i>
+                <select v-model="currentPage">
+                    <option v-for="page in pageNum" v-bind:value="page">page {{ page }}</option>
+                </select>
+                <i class="icon-zoom_in" v-bind:class="{'disabled': zoomNum == 2}" @click="modifyZoom('in')"></i>
+                <select v-model="zoomNum">
+                    <option value="0.5">50%</option>
+                    <option value="0.6">60%</option>
+                    <option value="0.7">70%</option>
+                    <option value="0.8">80%</option>
+                    <option value="0.9">90%</option>
+                    <option value="1.0" selected>100%</option>
+                    <option value="1.1">110%</option>
+                    <option value="1.2">120%</option>
+                    <option value="1.3">130%</option>
+                    <option value="1.4">140%</option>
+                    <option value="1.5">150%</option>
+                    <option value="1.6">160%</option>
+                    <option value="1.7">170%</option>
+                    <option value="1.8">180%</option>
+                    <option value="1.9">190%</option>
+                    <option value="2.0">200%</option>
+                </select>
+                <i class="icon-zoom_out" v-bind:class="{'disabled': zoomNum == 0.5}" @click="modifyZoom('out')"></i>
+                <i class="icon-format_align_left" @click="textAlign = 'left'"></i>
+                <i class="icon-format_align_center" @click="textAlign = 'center'"></i>
+                <i class="icon-format_align_right" @click="textAlign = 'right'"></i>
+                <i class="icon-print" @click="window.print()"></i>
+            </div>
+        </header>
+
+        <aside class="noprint" width="240px" v-show="ifMenuShow">
+            <nav class="tabNav">
+                <ul>
+                    <li v-bind:class="{ 'curr': currentNav == 0 }" @click="currentNav = 0">Page</li>
+                    <li v-bind:class="{ 'curr': currentNav == 1 }" @click="currentNav = 1">Bookmark</li>
+                </ul>
+
+                <div class="clear"></div>
+            </nav>
+
+            <div class="tab-conent scrollbar" v-bind:style="{ height: asideHeight + 'px' }">
+
+            <section v-show="currentNav == 0">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-file-text2"></i> page {{ page }}</li>
+                </ul>
+            </section>
+
+            <section v-show="currentNav == 1">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-turned_in_not"></i> Bookmark {{ page }}</li>
+                </ul>
+            </section>
+        </div>
+
+        </aside>
+        <div class="main scrollbar noprint"  v-bind:style="{ height: mainHeight + 'px' }" v-bind:class="{ 'mainLeftM': ifMenuShow, 'aleft': textAlign === 'left','acenter': textAlign === 'center','aright': textAlign === 'right'}">
+            <div class="conent" v-html="pageContent" v-bind:style="zoomStyle"></div>
+
+            <div class="clear"></div>
+        </div>
+
+        <!--专门只为打印的内容-->
+        <div class="conent print" style="display:none" v-html="pageContent"></div>
+    </div>
+</body>
+<!-- 先引入 Vue -->
+<script src="js/vue.min.js"></script>
+<script>
+
+var app = new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                // visible: false,
+                isCollapse: false,
+                currentNav: 0,
+                activeName2: 'first',
+                pageNum: 1, 
+                currentPage: 1,
+                pageContent: '',
+                asideHeight: 300,
+                mainHeight: 300,
+                ifMenuShow: true,
+                zoomNum: '1.0',
+                textAlign: 'left',
+                zoomStyle: {},
+                pageDatas: ['<div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="720.000000" width="1280.000000" src ="bgimg/bg00001.jpg"/></nobr></div><p><span style="font-family:宋体;font-size:20.040001px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:556.980835px;left:636.252441px"><nobr>ASSESSING JUICE-PERFECT MANUFACTURING </nobr></span></span></p><p><span style="font-family:宋体;font-size:20.063999px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:589.596008px;left:636.252441px"><nobr>STRATEGY &amp; OPERATION </nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium Cond;font-size:14.064000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:654.237549px;left:640.293457px"><nobr>Team ID: 2165875 </nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:17.040001px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:624.868469px;left:640.413452px"><nobr>Unplanned Downtime Reduction </nobr></span></span></p>','<div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="720.000000" width="1280.000000" src ="bgimg/bg00002.jpg"/></nobr></div><p><span style="font-family:Franklin Gothic Medium;font-size:8.040000px;font-style:normal;font-weight:normal;color:#00548B;"><span style="position:absolute;top:685.708496px;left:61.935493px"><nobr>2 </nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:8.040000px;font-style:normal;font-weight:normal;color:#A3AAAE;"><span style="position:absolute;top:685.708496px;left:86.901718px"><nobr>© 2017 APICS Confidential and Proprietary </nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:15.960000px;font-style:normal;font-weight:normal;color:#0B6A38;"><span style="position:absolute;top:196.749344px;left:75.218811px"><nobr>1. <span style="font-size:18.000000px;color:#000000;">When I assessed JUICE-PERFECT manufacturing company supply chain operation process, I </span></nobr></span><span style="position:absolute;top:228.429306px;left:109.947487px"><nobr><span style="font-size:18.000000px;color:#000000;">figured out that there are large amount of unmet planned production amount cases and there are </span></nobr></span><span style="position:absolute;top:260.078400px;left:109.947487px"><nobr><span style="font-size:18.024000px;color:#000000;">always some amount of bottles left in yard in raw material management. </span></nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:15.960000px;font-style:normal;font-weight:normal;color:#0B6A38;"><span style="position:absolute;top:323.509369px;left:75.218811px"><nobr>2. <span style="font-size:18.000000px;color:#000000;">In order to analyze the reasons behind the amount of bottles left in yard, I made a power pivot in </span></nobr></span><span style="position:absolute;top:355.189331px;left:109.947487px"><nobr><span style="font-size:18.000000px;color:#000000;">Excel. The top 2 reasons for amount left in yard are Misplaced in warehouse and Not received in </span></nobr></span><span style="position:absolute;top:386.838470px;left:109.947487px"><nobr><span style="font-size:18.024000px;color:#000000;">system. </span></nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:15.960000px;font-style:normal;font-weight:normal;color:#0B6A38;"><span style="position:absolute;top:450.256012px;left:75.218811px"><nobr>3. <span style="font-size:18.000000px;color:#000000;">The company needs to organize large variety of packaging materials and other raw materials and </span></nobr></span><span style="position:absolute;top:481.935974px;left:109.947487px"><nobr><span style="font-size:18.000000px;color:#000000;">categorize clearly. It could also set up a checking standardizing process between Received &amp; </span></nobr></span><span style="position:absolute;top:513.615967px;left:109.947487px"><nobr><span style="font-size:18.000000px;color:#000000;">Stored in Warehouse and Staged for filing / Packaging. </span></nobr></span></span></p>','<div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="720.000000" width="1280.000000" src ="bgimg/bg00003.jpg"/></nobr></div><p><span style="font-family:Franklin Gothic Medium;font-size:8.040000px;font-style:normal;font-weight:normal;color:#00548B;"><span style="position:absolute;top:685.708496px;left:61.935493px"><nobr>3 </nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:8.040000px;font-style:normal;font-weight:normal;color:#A3AAAE;"><span style="position:absolute;top:685.708496px;left:87.381851px"><nobr>© 2017 APICS Confidential and Proprietary </nobr></span></span></p><p><span style="font-family:Arial;font-size:15.960000px;font-style:normal;font-weight:normal;color:#0B6A38;"><span style="position:absolute;top:404.874908px;left:134.046844px"><nobr>• </nobr></span></span></p><p><span style="font-family:Arial;font-size:18.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:401.861328px;left:164.134369px"><nobr>Misplaced in warehouse / Not received in system </nobr></span></span></p><p><span style="font-family:Courier New;font-size:15.983999px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:445.031647px;left:182.058838px"><nobr>o <span style="font-family:Arial;font-size:18.024000px;">which separately occupy 42% and 28% of the cases </span></nobr></span></span></p><p><span style="font-family:Arial;font-size:15.960000px;font-style:normal;font-weight:normal;color:#0B6A38;"><span style="position:absolute;top:491.301605px;left:134.046844px"><nobr>• </nobr></span></span></p><p><span style="font-family:Arial;font-size:18.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:488.287964px;left:164.134369px"><nobr>The sum of amount left in yard and average of back order rate move in the </nobr></span><span style="position:absolute;top:531.488037px;left:164.134369px"><nobr>same direction with the count of reason left in yard </nobr></span></span></p><p><span style="font-family:Arial;font-size:15.983999px;font-style:normal;font-weight:normal;color:#0B6A38;"><span style="position:absolute;top:577.672607px;left:134.046844px"><nobr>• </nobr></span></span></p><p><span style="font-family:Arial;font-size:15.960000px;font-style:normal;font-weight:normal;color:#0B6A38;"><span style="position:absolute;top:620.933594px;left:134.046844px"><nobr>• </nobr></span></span></p><p><span style="font-family:Arial;font-size:18.024000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:574.658325px;left:164.134369px"><nobr>Organizing their large variety of packaging materials and categorizing clearly </nobr></span><span style="position:absolute;top:617.920044px;left:164.134369px"><nobr><span style="font-size:18.000000px;">A checking standardizing process </span></nobr></span></span></p><p><span style="font-family:宋体;font-size:44.040001px;font-style:normal;font-weight:normal;color:#00945F;"><span style="position:absolute;top:51.452881px;left:61.935493px"><nobr>Material Management </nobr></span></span></p>','<div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="720.000000" width="1280.000000" src ="bgimg/bg00004.jpg"/></nobr></div><p><span style="font-family:Franklin Gothic Medium;font-size:8.040000px;font-style:normal;font-weight:normal;color:#00548B;"><span style="position:absolute;top:685.708496px;left:61.935493px"><nobr>4 </nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:8.040000px;font-style:normal;font-weight:normal;color:#A3AAAE;"><span style="position:absolute;top:685.708496px;left:87.541893px"><nobr>© 2017 APICS Confidential and Proprietary </nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:15.960000px;font-style:normal;font-weight:normal;color:#0B6A38;"><span style="position:absolute;top:182.122681px;left:77.203300px"><nobr>1. <span style="font-size:18.000000px;color:#000000;">In order to solve out the large amount of unmet planned production amount cases, I thought that it </span></nobr></span><span style="position:absolute;top:213.771729px;left:111.931984px"><nobr><span style="font-size:18.024000px;color:#000000;">is because of the reactive analysis. Therefore, I created a forecasting line between interval of </span></nobr></span><span style="position:absolute;top:245.522675px;left:111.931984px"><nobr><span style="font-size:18.000000px;color:#000000;">planned production amount and the planned amount using tableau. The interval of amount is the </span></nobr></span><span style="position:absolute;top:277.202637px;left:111.931984px"><nobr><span style="font-size:18.000000px;color:#000000;">difference between two date of planned production. I found that as the interval of planned </span></nobr></span><span style="position:absolute;top:308.882690px;left:111.931984px"><nobr><span style="font-size:18.000000px;color:#000000;">production increase, the amount left in yard generally decreases. </span></nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:15.960000px;font-style:normal;font-weight:normal;color:#0B6A38;"><span style="position:absolute;top:372.269379px;left:77.203300px"><nobr>2. <span style="font-size:18.000000px;color:#000000;">The company needs to control the interval of planned production within suitable range and </span></nobr></span><span style="position:absolute;top:403.949310px;left:111.931984px"><nobr><span style="font-size:18.000000px;color:#000000;">forecast the planned production amount based on weekly basis. </span></nobr></span></span></p>','<div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="720.000000" width="1280.000000" src ="bgimg/bg00005.jpg"/></nobr></div><p><span style="font-family:Franklin Gothic Medium;font-size:8.040000px;font-style:normal;font-weight:normal;color:#00548B;"><span style="position:absolute;top:685.708496px;left:61.935493px"><nobr>5 </nobr></span></span></p><p><span style="font-family:Franklin Gothic Medium;font-size:8.040000px;font-style:normal;font-weight:normal;color:#A3AAAE;"><span style="position:absolute;top:685.708496px;left:87.541893px"><nobr>© 2017 APICS Confidential and Proprietary </nobr></span></span></p><p><span style="font-family:宋体;font-size:44.040001px;font-style:normal;font-weight:normal;color:#00945F;"><span style="position:absolute;top:51.452881px;left:61.935493px"><nobr>Material Management </nobr></span></span></p><p><span style="font-family:Arial;font-size:18.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:169.114670px;left:110.139542px"><nobr>• The certain range of difference of production </nobr></span><span style="position:absolute;top:212.314651px;left:140.221741px"><nobr>date increase, the back orders will decrease </nobr></span></span></p><p><span style="font-family:Arial;font-size:18.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:255.554626px;left:110.139542px"><nobr>• The difference of production date is too large, </nobr></span><span style="position:absolute;top:298.754639px;left:140.221741px"><nobr>the failures will increase sharply </nobr></span></span></p><p><span style="font-family:Arial;font-size:18.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:341.954681px;left:110.139542px"><nobr>• Control the interval of production </nobr></span></span></p><p><span style="font-family:Arial;font-size:18.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:515.488037px;left:110.139542px"><nobr>• Forecast the planned production amount based </nobr></span><span style="position:absolute;top:544.287964px;left:140.221741px"><nobr>on weekly basis </nobr></span></span></p>']
+            }
+        },
+        mounted: function() {
+            this.$nextTick(function() {
+                this.pageNum = this.pageDatas.length;
+                this.pageContent = this.pageDatas[0];
+
+                this.setLeftMenuHeight();
+            })
+        },
+        watch: {
+            'currentPage': function(newVal, oldValue) {
+                // console.log('newVal ' + newVal, 'oldValue ' + oldValue);
+                if (newVal) {
+                    this.pageContent = this.pageDatas[this.currentPage - 1];
+                }
+            },
+            'zoomNum': function(newVal, oldValue) {
+                if (newVal) {
+                    this.zoomStyle = {
+                        'transform': 'scale(' + newVal + ')',
+                        '-webkit-transform': 'scale(' + newVal + ')',
+                        '-ms-transform': 'scale(' + newVal + ')',
+                        '-moz-transform': 'scale(' + newVal + ')',
+                        '-o-transform': 'scale(' + newVal + ')'
+                    }
+                }
+            }
+        },
+        methods: {
+            
+            changeCurrentPage: function(methods) {
+                switch (methods) {
+                    case 'first':
+                        this.currentPage = 1;
+                        break;
+                    case 'prev':
+                        if (this.currentPage > 1) {
+                            this.currentPage -= 1;
+                        }
+                        break;
+                    case 'next':
+                        if (this.currentPage < this.pageNum) {
+                            this.currentPage += 1;
+                        }
+                        break;
+                    case 'last':
+                        this.currentPage = this.pageNum;
+                        break;
+                }
+            },
+
+            gotoPage: function(page) {
+                console.log(page);
+                this.currentPage = page;
+            },
+            modifyZoom: function(type) {
+                switch (type) {
+                    case 'in':
+                        if (this.zoomNum < 2) {
+                            // this.zoomNum = (this.zoomNum + 0.1).toFixed(1);
+                            this.zoomNum = (parseFloat(this.zoomNum) + 0.1).toFixed(1);
+                        }
+                        break;
+                    case 'out':
+                        if (this.zoomNum > 0.5) {
+                            this.zoomNum = (parseFloat(this.zoomNum) - 0.1).toFixed(1);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                console.log(this.zoomNum);
+            },
+            setLeftMenuHeight: function() {
+                // this.asideHeight = document.body.scrollHeight - 60;
+                this.mainHeight = document.documentElement.clientHeight - 60 - 20;
+                // 60为头部导航高度， 46为menu高度， 40为上下padding
+                this.asideHeight = this.mainHeight - 20 - 46;
+            },
+            changePage: function(page) {
+                this.currentPage = page;
+                // this.pageContent = this.pageDatas[page - 1];
+            },
+            changeLeftMenu: function() {
+                this.ifMenuShow = !this.ifMenuShow;
+            }
+        }
+    });
+
+function gotoPage(page) {
+    console.log(page);
+    app.gotoPage(page);
+}
+
+</script>
+
+</html>
